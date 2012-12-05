@@ -47,16 +47,20 @@ class Phergie_Plugin_Php extends Phergie_Plugin_Abstract
      */
     public function onLoad()
     {
-        // @todo find a way to move this to Phergie_Plugin_Php_Source_Local
-        if (!extension_loaded('PDO') || !extension_loaded('pdo_sqlite')) {
-            $this->fail('PDO and pdo_sqlite extensions must be installed');
-        }
-
         $this->getPluginHandler()->getPlugin('Command');
-
+		
+		//	checks if there's a custom configuration for the source object
+		
+		$config = $this->getConfig();
+		if(isset($config['plugin.php.source'])) {
+			$class = 'Phergie_Plugin_Php_Source_' . ucfirst($config['plugin.php.source']);
+		} else {
+			$class = 'Phergie_Plugin_Php_Source_Local';
+		}
+		
         try {
             $db = $this->findDataFile('functions.db');
-            $this->source = new Phergie_Plugin_Php_Source_Local($db);
+            $this->source = new $class($db);
         } catch (Phergie_Plugin_Source_Local_Exception $e) {
             $this->fail($e->getMessage());
         }
@@ -70,7 +74,7 @@ class Phergie_Plugin_Php extends Phergie_Plugin_Abstract
      * @return void
      */
     public function onCommandPhp($functionName)
-    {
+    {	
         $nick = $this->event->getNick();
         if ($function = $this->source->findFunction($functionName)) {
             $msg = $nick . ': ' . $function['description'];

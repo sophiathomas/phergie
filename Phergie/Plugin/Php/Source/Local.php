@@ -58,6 +58,13 @@ class Phergie_Plugin_Php_Source_Local implements Phergie_Plugin_Php_Source
      */
     public function __construct($path)
     {
+        // @todo find a way to move this to Phergie_Plugin_Php_Source_Local
+        if (!extension_loaded('PDO') || !extension_loaded('pdo_sqlite')) {
+            throw new Phergie_Plugin_Php_Source_Exception(
+                'PDO and pdo_sqlite extensions must be installed'
+            );
+        }
+
         try {
             $this->database = new PDO('sqlite:' . $path);
             $this->buildDatabase();
